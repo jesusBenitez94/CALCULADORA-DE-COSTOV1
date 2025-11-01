@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Calculadora de Costo - Jesus Benitez</title>
 
-  <!-- Bootstrap 5 CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <!-- jsPDF CDN para generar PDF en el navegador -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
@@ -37,7 +35,7 @@
           <div class="d-flex justify-content-between align-items-start mb-3">
             <div>
               <h3 class="mb-0">Calculadora de Costo</h3>
-              <small class="text-muted">by JESUS BENITEZ — v.1 (web)</small>
+              <small class="text-muted">by JESUS BENITEZ — v.3 (Lista Completa)</small>
             </div>
             <div class="text-end">
               <button id="fullscreenBtn" class="btn btn-outline-secondary btn-sm">Pantalla completa</button>
@@ -45,15 +43,21 @@
           </div>
 
           <div class="row g-3">
-            <div class="col-md-6">
-              <label for="categoria" class="form-label">Categoría</label>
-              <select id="categoria" class="form-select">
-                <!-- Opciones añadidas por JS -->
-              </select>
+            
+            <div class="col-md-4">
+              <label for="categoriaPrincipal" class="form-label">Categoría Principal</label>
+              <select id="categoriaPrincipal" class="form-select">
+                </select>
+            </div>
+            
+            <div class="col-md-4">
+              <label for="subCategoria" class="form-label">Sub-Categoría</label>
+              <select id="subCategoria" class="form-select">
+                </select>
             </div>
 
-            <div class="col-md-6">
-              <label for="precioNeto" class="form-label">Ingrese Costo s/iva o C/iva</label>
+            <div class="col-md-4">
+              <label for="precioNeto" class="form-label">Costo s/iva o C/iva</label>
               <input id="precioNeto" type="text" class="form-control" placeholder="Ej: 1234.56" inputmode="decimal">
             </div>
 
@@ -110,37 +114,125 @@
   </main>
 
   <script>
-  // Mapa de categorías y márgenes (igual que en Python)
-  const CATEGORIAS_MARGEN = {
-    "ALIMENTOS": 0.50,
-    "CERVEZAS": 0.40,
-    "VINOS": 0.45,
-    "BEB. BLANCAS": 0.55,
-    "ESPUMANTES": 0.55,
-    "JUGOS LIQUIDOS/POLVO": 0.50,
-    "GASEOSAS, AGUAS SAB.": 0.40,
-    "CONGELADOS": 0.50,
-    "LACTEOS": 0.40,
-    "CARAMELOS/CHICLES": 0.70,
-    "CHOCOLATES": 0.60,
-    "GALLETITAS": 0.60,
-    "ALFAJORES": 0.60,
-    "BAZAR": 0.50,
-    "ANALGESICOS": 1.00,
-    "LIMPIEZA": 0.50,
-    "HIGIENE PERSONAL, FARMACIA": 0.50,
-    "PANIFICADOS": 0.40,
-    "FIAMBRERIA": 0.50,
-    "SNACKS": 0.50,
-    "HELADOS/POSTRES": 0.50
+  // MODIFICACIÓN: Mapa de categorías anidado actualizado con tu lista completa
+  const CATEGORIAS_ANIDADAS = {
+    "ALMACEN": {
+      "ALMACEN (General)": 0.58,
+      "ALMACEN / ACEITES, CONDIMENTOS Y ESPECIAS": 0.58,
+      "ALMACEN / ADEREZOS Y SALSAS": 0.58,
+      "ALMACEN / ARROZ, PASTAS SECAS": 0.58,
+      "ALMACEN / CONSERVAS": 0.58,
+      "ALMACEN / ENDULZANTES": 0.58,
+      "ALMACEN / GALLETITAS": 0.68,
+      "ALMACEN / HARINAS": 0.58,
+      "ALMACEN / INFUSIONES": 0.58,
+      "ALMACEN / JUGOS EN POLVOS": 0.58,
+      "ALMACEN / MERMELADAS Y DULCES": 0.58,
+      "ALMACEN / PANADERIA": 0.48,
+      "ALMACEN / REPOSTERIA Y POSTRES": 0.58,
+      "ALMACEN / SNACKS Y CEREALES": 0.68,
+      "ALMACEN / SOPAS, CALDOS, PURÉS Y SABORIZADOS": 0.60
+    },
+    "BEBIDAS": {
+      "BEBIDAS CON ALCOHOL (General)": 0.63,
+      "BEBIDAS CON ALCOHOL / APERITIVOS": 0.63,
+      "BEBIDAS CON ALCOHOL / BEBIDAS BLANCAS": 0.63,
+      "BEBIDAS CON ALCOHOL / CHAMPAGNE Y ESPUMANTES": 0.60,
+      "BEBIDAS CON ALCOHOL / VINOS": 0.53,
+      "BEBIDAS CON ALCOHOL / WHISKY": 0.63,
+      "BEBIDAS SIN ALCOHOL (General)": 0.58,
+      "BEBIDAS SIN ALCOHOL / AGUAS (58% FLIARES 68% INDIV)": 0.58,
+      "BEBIDAS SIN ALCOHOL / AGUAS SABORIZADAS (FLIARES 48% INDIVI 58%)": 0.48,
+      "BEBIDAS SIN ALCOHOL / GASEOSAS (48% Fliares v 58% Indiv v Ret 30%)": 0.48,
+      "BEBIDAS SIN ALCOHOL / ISOTONICAS / ENERGIZANTES": 0.58,
+      "BEBIDAS SIN ALCOHOL / JUGOS": 0.58,
+      "CERVEZAS (de seccion Otros)": 0.48 // Movido de 'Otros'
+    },
+    "OTROS": {
+      "CARBON - LEÑA": 0.60,
+      "COMBOS Y PROMOCIONES": 0.30,
+      "Indefinido (de Kiosco)": 0.58
+    },
+    "CONGELADOS": {
+      "CONGELADOS / COMIDAS CONGELADAS": 0.58,
+      "CONGELADOS / FRUTAS CONGELADAS": 0.60,
+      "CONGELADOS / HELADOS Y POSTRES": 0.58,
+      "CONGELADOS / NUGGETS, PATITAS Y BOCADITOS": 0.60,
+      "CONGELADOS / VEGETALES CONGELADOS": 0.60
+    },
+    "FRESCOS": {
+      "FRESCOS (General)": 0.50,
+      "FRESCOS / AVES": 0.50,
+      "FRESCOS / CARNICERIA": 0.50,
+      "FRESCOS / FIAMBRES": 0.50,
+      "FRESCOS / FRUTAS Y VERDURAS": 0.50,
+      "FRESCOS / HUEVOS": 0.58,
+      "FRESCOS / LACTEOS (FLIARES 48% INDIVI 58%)": 0.48, // Tomando 48%
+      "FRESCOS / PASTAS FRESCAS": 0.58,
+      "FRESCOS / PESCADERIA": 0.50,
+      "FRESCOS / QUESOS": 0.50,
+      "FRESCOS / SANDWICHES": 0.50
+    },
+    "GASTRONOMIA": {
+      "GASTRONOMIA (General - SE MANTIENE)": 0.00, // Margen 0
+      "GASTRONOMIA / CAFETERIA": 0.50,
+      "GASTRONOMIA / POSTRES": 0.58
+    },
+    "HOGAR": {
+      "HOGAR (General)": 0.60,
+      "HOGAR / ACCESORIOS DE ILUMINACION Y ELECTRICIDAD": 0.60,
+      "HOGAR / BAZAR": 0.60,
+      "HOGAR / JUGUETERIA": 0.78,
+      "HOGAR / MASCOTAS": 0.60
+    },
+    "KIOSCO": {
+      "KIOSCO / GOLOSINAS (General)": 0.68,
+      "KIOSCO / GOLOSINAS / ALFAJORES": 0.68,
+      "KIOSCO / GOLOSINAS / CARAMELOS Y CHUPETINES": 0.78,
+      "KIOSCO / GOLOSINAS / CHICLES Y PASTILLAS": 0.78,
+      "KIOSCO / GOLOSINAS / CHOCOLATES": 0.68,
+      "KIOSCO / GOLOSINAS / GOMITAS Y GELATINAS": 0.68,
+      "KIOSCO / GOLOSINAS / HIELOS": 1.00, // 100%
+      "KIOSCO / GOLOSINAS / TURRONES, OBLEAS, BARRITAS DE CEREAL": 0.68
+    },
+    "LIMPIEZA": {
+      "LIMPIEZA (General)": 0.60,
+      "LIMPIEZA / ACCESORIOS DE LIMPIEZA": 0.60,
+      "LIMPIEZA / CALZADOS": 0.60,
+      "LIMPIEZA / DESODORANTES DE AMBIENTE": 0.60,
+      "LIMPIEZA / INSECTICIDAS": 0.60,
+      "LIMPIEZA / LAVADO": 0.60,
+      "LIMPIEZA / LIMPIEZA DE BAÑO": 0.60,
+      "LIMPIEZA / LIMPIEZA DE COCINA": 0.60,
+      "LIMPIEZA / LIMPIEZA DE PISOS Y SUPERFICIES": 0.60,
+      "LIMPIEZA / PAPELES": 0.60
+    },
+    "PANADERIA": {
+      "PANES": 0.40,
+      "PANIFICADORA TRIGO SRL": 0.40
+    },
+    "PERFUMERIA Y FARMACIA": {
+      "PERFUMERIA / FARMACIA (General)": 0.60,
+      "PERFUMERIA / FARMACIA / ANALGESICOS": 1.00, // 100%
+      "PERFUMERIA / FARMACIA / COSMETICOS": 0.60,
+      "PERFUMERIA / FARMACIA / CUIDADO BUCAL": 0.60,
+      "PERFUMERIA / FARMACIA / CUIDADO DE LA PIEL": 0.60,
+      "PERFUMERIA / FARMACIA / CUIDADO DEL CABELLO": 0.60,
+      "PERFUMERIA / FARMACIA / CUIDADO PERSONAL": 0.60,
+      "PERFUMERIA / FARMACIA / DESODORANTES": 0.60,
+      "PERFUMERIA / FARMACIA / HIGIENE PERSONAL": 0.60
+    }
   };
+  // FIN DE LA MODIFICACIÓN
+
 
   // Estado
   let netPrice = null;
   const appliedTaxes = {}; // { "IVA 21%": amount, ... }
 
   // Elementos DOM
-  const categoriaEl = document.getElementById('categoria');
+  const categoriaPrincipalEl = document.getElementById('categoriaPrincipal');
+  const subCategoriaEl = document.getElementById('subCategoria');
   const precioNetoEl = document.getElementById('precioNeto');
   const impuestosAplicadosEl = document.getElementById('impuestosAplicados');
   const precioConImpuestosEl = document.getElementById('precioConImpuestos');
@@ -153,20 +245,35 @@
   const refrescarBtn = document.getElementById('refrescarBtn');
   const fullscreenBtn = document.getElementById('fullscreenBtn');
 
-  // Inicializar categorías en el select
-  function initCategorias() {
-    Object.keys(CATEGORIAS_MARGEN).forEach(cat => {
+  function populateSubCategorias() {
+    const mainCat = categoriaPrincipalEl.value;
+    const subCats = CATEGORIAS_ANIDADAS[mainCat] || {};
+    
+    subCategoriaEl.innerHTML = '';
+    
+    Object.keys(subCats).forEach(cat => {
       const opt = document.createElement('option');
       opt.value = cat;
       opt.textContent = cat;
-      categoriaEl.appendChild(opt);
+      subCategoriaEl.appendChild(opt);
     });
-    categoriaEl.value = "ALIMENTOS";
+    
+    updateDisplay();
+  }
+
+  function initCategorias() {
+    Object.keys(CATEGORIAS_ANIDADAS).forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat;
+      categoriaPrincipalEl.appendChild(opt);
+    });
+    
+    populateSubCategorias();
   }
 
   function parsePrice(value) {
     if (!value) return null;
-    // Reemplaza coma por punto para parsear decimales
     const normalized = String(value).trim().replace(/\s+/g, '').replace(',', '.');
     const v = Number(normalized);
     if (Number.isFinite(v) && v >= 0) return v;
@@ -175,7 +282,6 @@
 
   function formatCurrency(num) {
     if (num === null || num === undefined || !Number.isFinite(num)) return '—';
-    // Usamos formato local (Argentina) con símbolo ARS
     return num.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 2 });
   }
 
@@ -184,12 +290,17 @@
       impuestosAplicadosEl.textContent = '— No hay impuestos aplicados —';
       return;
     }
-    // Mostrar cada impuesto en nueva línea
     const lines = Object.entries(appliedTaxes).map(([name, amount]) => `${name}: +${formatCurrency(amount)}`);
     impuestosAplicadosEl.innerHTML = '<small>' + lines.join('\n') + '</small>';
   }
 
   function updateDisplay() {
+    // Primero, obtener el precio base si existe
+    const parsedPrice = parsePrice(precioNetoEl.value);
+    if (parsedPrice !== null) {
+      netPrice = parsedPrice;
+    }
+
     if (netPrice === null) {
       precioConImpuestosEl.textContent = '—';
       precioFinalEl.textContent = '—';
@@ -201,23 +312,37 @@
     const totalTax = Object.values(appliedTaxes).reduce((a,b) => a + b, 0);
     const priceWithTaxes = netPrice + totalTax;
 
-    const category = categoriaEl.value;
-    const margin = CATEGORIAS_MARGEN[category] ?? 0;
+    const mainCat = categoriaPrincipalEl.value;
+    const subCat = subCategoriaEl.value;
+
+    if (!mainCat || !subCat) {
+      precioFinalEl.textContent = '—';
+      margenTextoEl.textContent = 'Seleccione categoría';
+      precioConImpuestosEl.textContent = formatCurrency(priceWithTaxes); // Mostrar costo
+      return;
+    }
+
+    const margin = CATEGORIAS_ANIDADAS[mainCat][subCat] ?? 0;
     const finalPrice = priceWithTaxes * (1 + margin);
 
     precioConImpuestosEl.textContent = formatCurrency(priceWithTaxes);
     precioFinalEl.textContent = formatCurrency(finalPrice);
-    margenTextoEl.textContent = `${(margin*100).toFixed(0)}% (${category})`;
+    
+    // Mostrar subcategoría con nombre más corto si es muy larga
+    const subCatDisplay = subCat.length > 30 ? subCat.substring(0, 27) + '...' : subCat;
+    margenTextoEl.textContent = `${(margin*100).toFixed(0)}% (${subCatDisplay})`;
 
     showImpuestos();
   }
 
-  // Aplicar impuesto (evitar duplicados)
   function applyTax(name, rate) {
-    if (netPrice === null) {
+    const parsed = parsePrice(precioNetoEl.value);
+    if (parsed === null) {
       alert('Ingrese un precio neto válido antes de aplicar impuestos.');
       return;
     }
+    netPrice = parsed; // Asegurarse de que netPrice esté actualizado
+
     if (appliedTaxes.hasOwnProperty(name)) {
       alert(`${name} ya fue aplicado.`);
       return;
@@ -227,11 +352,18 @@
     updateDisplay();
   }
 
-  // Generar PDF con jsPDF
   async function downloadPdf() {
-    if (netPrice === null || Object.keys(appliedTaxes).length === 0) {
-      alert('Debe ingresar un precio neto y aplicar al menos un impuesto antes de generar el PDF.');
+    const parsed = parsePrice(precioNetoEl.value);
+     if (parsed === null) {
+      alert('Debe ingresar un precio neto válido antes de generar el PDF.');
       return;
+    }
+    netPrice = parsed; // Asegurarse de que netPrice esté actualizado
+    updateDisplay(); // Recalcular todo
+
+    if (Object.keys(appliedTaxes).length === 0) {
+       alert('Debe aplicar al menos un impuesto antes de generar el PDF.');
+       return;
     }
 
     const { jsPDF } = window.jspdf;
@@ -261,13 +393,22 @@
     y += 6;
     const totalTax = Object.values(appliedTaxes).reduce((a,b) => a + b, 0);
     const priceWithTaxes = netPrice + totalTax;
-    const category = categoriaEl.value;
-    const margin = CATEGORIAS_MARGEN[category] ?? 0;
+    
+    const mainCat = categoriaPrincipalEl.value;
+    const subCat = subCategoriaEl.value;
+    
+    if (!mainCat || !subCat) {
+        alert("Seleccione una categoría y sub-categoría válidas.");
+        return;
+    }
+
+    const margin = CATEGORIAS_ANIDADAS[mainCat][subCat] ?? 0;
     const finalPrice = priceWithTaxes * (1 + margin);
 
     doc.text(`PRECIO COSTO (con impuestos): ${formatCurrency(priceWithTaxes)}`, marginLeft, y);
     y += 20;
-    doc.text(`Margen aplicado (${category}): +${(margin*100).toFixed(0)}%`, marginLeft, y);
+    // Usar el nombre completo de la subcategoría para el PDF
+    doc.text(`Margen aplicado (${subCat}): +${(margin*100).toFixed(0)}%`, marginLeft, y);
     y += 28;
     doc.setFont('helvetica', 'bold');
     doc.text(`PRECIO FINAL: ${formatCurrency(finalPrice)}`, marginLeft, y);
@@ -276,7 +417,6 @@
     doc.setFontSize(10);
     doc.text('Generado por Jesus Benitez', 300, y, { align: 'center' });
 
-    // Nombre de archivo sugerido
     const filename = `detalle_precios_${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}.pdf`;
     doc.save(filename);
   }
@@ -286,14 +426,7 @@
     btn.addEventListener('click', (e) => {
       const name = btn.getAttribute('data-name');
       const rate = parseFloat(btn.getAttribute('data-rate'));
-      // Aseguramos que netPrice está actualizado
-      const parsed = parsePrice(precioNetoEl.value);
-      if (parsed === null) {
-        alert('Ingrese un precio neto válido (número positivo).');
-        return;
-      }
-      netPrice = parsed;
-      applyTax(name, rate);
+      applyTax(name, rate); // La función applyTax ahora obtiene el precio
     });
   });
 
@@ -308,12 +441,6 @@
   });
 
   descargarPdfBtn.addEventListener('click', async () => {
-    const parsed = parsePrice(precioNetoEl.value);
-    if (parsed === null) {
-      alert('Ingrese un precio neto válido (número positivo) antes de descargar.');
-      return;
-    }
-    netPrice = parsed;
     await downloadPdf();
   });
 
@@ -325,15 +452,21 @@
   });
 
   refrescarBtn.addEventListener('click', () => {
-    // Misma función que limpiar + seleccionar ALIMENTOS
     precioNetoEl.value = '';
     Object.keys(appliedTaxes).forEach(k => delete appliedTaxes[k]);
     netPrice = null;
-    categoriaEl.value = "ALIMENTOS";
-    updateDisplay();
+    
+    categoriaPrincipalEl.selectedIndex = 0; 
+    populateSubCategorias(); 
   });
 
-  // Permitir quitar pantalla completa con Escape
+  categoriaPrincipalEl.addEventListener('change', populateSubCategorias);
+  subCategoriaEl.addEventListener('change', updateDisplay);
+  
+  // También actualiza el display si se cambia el precio
+  precioNetoEl.addEventListener('input', updateDisplay);
+
+
   fullscreenBtn.addEventListener('click', () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(err => {
@@ -350,15 +483,11 @@
   });
 
   // Inicialización
-  initCategorias();
+  initCategorias(); 
   updateDisplay();
 
-  // Estética: botón para categoría "IMPUESTOS 1.5%" tenía clase personalizada en el HTML
-  // (ya funciona por atributo data-rate)
   </script>
 
-  <!-- Bootstrap JS (opcional para componentes) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
